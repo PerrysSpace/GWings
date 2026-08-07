@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"net/url"
 	"sort"
-	"strings"		
+	"strings"
 
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/container"
@@ -95,10 +95,25 @@ type DockerConfiguration struct {
 	// Sets the IPS that the user is able to bind to
 	SystemIps []string `default:"[]" json:"system_ips" yaml:"system_ips"`
 
+	// Devices is an allowlist of host devices that servers may be granted access to,
+	// keyed by a name chosen by the node administrator. A server opts into a group by
+	// setting the `ENABLE_<NAME>` environment variable (for example `ENABLE_GPU=1` for
+	// the group named "gpu") through its egg.
+	//
+	// Servers can only select groups that are defined here, they can never define the
+	// device paths themselves. If this is empty — the default — no server is able to
+	// access any host device and the behaviour of Wings is unchanged.
+	Devices map[string]DeviceConfiguration `json:"devices" yaml:"devices"`
+
 	LogConfig struct {
 		Type   string            `default:"local" json:"type" yaml:"type"`
 		Config map[string]string `default:"{\"max-size\":\"5m\",\"max-file\":\"1\",\"compress\":\"false\",\"mode\":\"non-blocking\"}" json:"config" yaml:"config"`
 	} `json:"log_config" yaml:"log_config"`
+}
+
+type DeviceConfiguration struct {
+	Paths  []string `json:"paths" yaml:"paths"`
+	Groups []string `json:"groups" yaml:"groups"`
 }
 
 func (c DockerConfiguration) ContainerLogConfig() container.LogConfig {
@@ -111,6 +126,7 @@ func (c DockerConfiguration) ContainerLogConfig() container.LogConfig {
 		Config: c.LogConfig.Config,
 	}
 }
+
 // RegistryCredentialsForImage returns registry credentials for an image only
 // when the configured registry and image reference share the same registry
 // identity.
