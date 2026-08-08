@@ -13,6 +13,23 @@ dependencies, and allowing users to authenticate with the same credentials they 
 * [Wings Documentation](https://pelican.dev/docs/wings/install)
 * Or, get additional help [via Discord](https://discord.gg/pelican-panel)
 
+## Host device passthrough
+
+This fork adds optional host device passthrough to server containers (e.g.
+`/dev/dri` for GPU access), gated by an allowlist the node administrator
+defines in `config.yml`. A server can only opt into a group that is defined
+there — it can never supply or influence a device path itself.
+
+### Configuring an allowlist
+
+```yaml
+docker:
+  devices:
+    gpu:
+      paths: ["/dev/dri"]
+      groups: ["44", "104"]
+```
+
 ## Reporting Issues
 
 Feel free to report any wings specific issues or feature requests in [GitHub Issues](https://github.com/pelican-dev/wings/issues/new).
