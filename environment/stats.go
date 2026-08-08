@@ -22,6 +22,11 @@ type Stats struct {
 
 	// The current uptime of the container, in milliseconds.
 	Uptime int64 `json:"uptime"`
+
+	// The state of the host GPU this server has been granted access to, if any.
+	// Nil — and therefore absent from the JSON — for every server that has not
+	// opted into a device group. See environment/gpu.go.
+	GPU *GPUStats `json:"gpu,omitempty"`
 }
 
 type NetworkStats struct {
