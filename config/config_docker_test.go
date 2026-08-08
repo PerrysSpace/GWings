@@ -1,6 +1,49 @@
 package config
 
-import "testing"
+import (
+	"testing"
+
+	"gopkg.in/yaml.v2"
+)
+
+func TestDockerDevicesRoundTrip(t *testing.T) {
+	raw := `
+devices:
+  gpu:
+    paths: ["/dev/dri"]
+    groups: ["video", "render"]
+`
+	var cfg DockerConfiguration
+	if err := yaml.Unmarshal([]byte(raw), &cfg); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	gpu, ok := cfg.Devices["gpu"]
+	if !ok {
+		t.Fatal("expected \"gpu\" device group to be parsed")
+	}
+	if len(gpu.Paths) != 1 || gpu.Paths[0] != "/dev/dri" {
+		t.Fatalf("unexpected paths: %+v", gpu.Paths)
+	}
+	if len(gpu.Groups) != 2 {
+		t.Fatalf("unexpected groups: %+v", gpu.Groups)
+	}
+
+	// Round-trip: marshal back out and re-parse, simulating Wings' WriteToDisk
+	// rewriting the whole config file.
+	out, err := yaml.Marshal(&cfg)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var reparsed DockerConfiguration
+	if err := yaml.Unmarshal(out, &reparsed); err != nil {
+		t.Fatalf("re-unmarshal: %v", err)
+	}
+	if len(reparsed.Devices) != 1 {
+		t.Fatalf("devices did not survive round-trip, got %+v", reparsed.Devices)
+	}
+}
 
 func TestDockerRegistryCredentialsForImage(t *testing.T) {
 	cfg := DockerConfiguration{
