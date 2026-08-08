@@ -36,10 +36,10 @@ git rebase "$TARGET"
 
 ### Expected conflicts
 
-- [environment/docker/container.go](https://github.com/KiansProjects/GPU-Wings/blob/main/environment/docker/container.go) — upstream moved code around the hostConf literal. Keep upstreams version, re-add `e.applyDevices(hostConf, evs)` after the struct literal, before `ContainerCreate`.
-- [environment/docker/stats.go](https://github.com/KiansProjects/GPU-Wings/blob/main/environment/docker/stats.go) — same idea, keep upstreams struct fields, re-add `GPU: e.gpuStats(),`.
-- [config/config_docker.go](https://github.com/KiansProjects/GPU-Wings/blob/main/config/config_docker.go) — a conflict here means upstream touched `DockerConfiguration`. The `Devices` field is purely additive, keep both sides.
-- [README.md](https://github.com/KiansProjects/GPU-Wings/blob/main/README.md) — resolve however makes sense; it's an append, not a replacement, so conflicts should be rare and trivial.
+- [environment/docker/container.go](https://github.com/PerrysSpace/GWings/blob/main/environment/docker/container.go) — upstream moved code around the hostConf literal. Keep upstreams version, re-add `e.applyDevices(hostConf, evs)` after the struct literal, before `ContainerCreate`.
+- [environment/docker/stats.go](https://github.com/PerrysSpace/GWings/blob/main/environment/docker/stats.go) — same idea, keep upstreams struct fields, re-add `GPU: e.gpuStats(),`.
+- [config/config_docker.go](https://github.com/PerrysSpace/GWings/blob/main/config/config_docker.go) — a conflict here means upstream touched `DockerConfiguration`. The `Devices` field is purely additive, keep both sides.
+- [README.md](https://github.com/PerrysSpace/GWings/blob/main/README.md) — resolve however makes sense; it's an append, not a replacement, so conflicts should be rare and trivial.
 
 Then: 
 ```bash
