@@ -50,6 +50,34 @@ group on or off — it is never interpreted as a path.
 Restarting the server (not reinstalling) is enough to apply a change, since
 Wings recreates the container on every start.
 
+### GPU stats
+
+A server that has been granted access to a GPU (see above) reports its state
+in its resource stats:
+
+```json
+{
+  "gpu": {
+    "driver": "amdgpu",
+    "pci_id": "1002:67df",
+    "utilization": 37.0,
+    "memory_bytes": 3980000000,
+    "memory_limit_bytes": 8589934592,
+    "temperature_c": 72.0,
+    "power_watts": 118.5
+  }
+}
+```
+
+The `gpu` key is absent entirely for a server that has not opted into a
+device group.
+
+These numbers describe the card, not the server. Passing a GPU through does
+not partition it in any way — if two servers share the same device group,
+both report the same, combined load. Currently only AMD cards via the
+`amdgpu` kernel driver are supported, read from sysfs (`/sys/class/drm`); no
+NVIDIA or Intel driver is implemented.
+
 ## Reporting Issues
 
 Feel free to report any wings specific issues or feature requests in [GitHub Issues](https://github.com/pelican-dev/wings/issues/new).
