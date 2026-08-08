@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/pelican-dev/wings/environment"
 )
 
 // gpuSysfsRoot is the directory the DRM cards are enumerated from. It is a
@@ -89,4 +91,69 @@ func readUevent(path string) (driver string, pciID string) {
 	}
 
 	return driver, pciID
+}
+
+// readGPUStats reads the first DRM card under root that reports a utilization
+// counter. Only the amdgpu driver is supported: it exposes everything needed as
+// plain files in sysfs, which needs no library, no subprocess and no privileges
+// beyond the ones Wings already has.
+//
+// Nothing here is per-process. Attributing load to a single container means
+// walking the DRM fdinfo of the container's processes (what nvtop does), which
+// is a good deal more machinery than this, and is the reason the values are
+// documented as card-level throughout.
+func readGPUStats(root string) *environment.GPUStats {
+	for _, dir := range gpuCardDirs(root) {
+		busy, ok := readUintFile(filepath.Join(dir, "gpu_busy_percent"))
+		if !ok {
+			// Either not an amdgpu card or a kernel too old to report it. Both
+			// mean there is nothing to show, so try the next card.
+			continue
+		}
+
+		stats := &environment.GPUStats{Utilization: float64(busy)}
+		stats.Driver, stats.PCIID = readUevent(filepath.Join(dir, "uevent"))
+
+		if used, ok := readUintFile(filepath.Join(dir, "mem_info_vram_used")); ok {
+			stats.Memory = used
+		}
+		if total, ok := readUintFile(filepath.Join(dir, "mem_info_vram_total")); ok {
+			stats.MemoryLimit = total
+		}
+
+		readHwmon(dir, stats)
+
+		return stats
+	}
+
+	return nil
+}
+
+// readHwmon fills in the temperature and power readings from the card's hwmon
+// device. Both are optional: which sensors exist depends on the card, and the
+// zero value means "not reported" for each of them.
+func readHwmon(dir string, stats *environment.GPUStats) {
+	matches, err := filepath.Glob(filepath.Join(dir, "hwmon", "hwmon*"))
+	if err != nil {
+		return
+	}
+	sort.Strings(matches)
+
+	for _, hwmon := range matches {
+		// Millidegrees Celsius.
+		if temp, ok := readUintFile(filepath.Join(hwmon, "temp1_input")); ok && stats.Temperature == 0 {
+			stats.Temperature = float64(temp) / 1000
+		}
+
+		// Microwatts. Cards report either an average or an instantaneous value,
+		// and some report neither unless they are under load.
+		if stats.Power == 0 {
+			for _, name := range []string{"power1_average", "power1_input"} {
+				if power, ok := readUintFile(filepath.Join(hwmon, name)); ok && power > 0 {
+					stats.Power = float64(power) / 1000000
+					break
+				}
+			}
+		}
+	}
 }
