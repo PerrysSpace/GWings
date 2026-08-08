@@ -40,6 +40,16 @@ nothing if the image doesn't define that group. Find the host GIDs with:
 getent group video render
 ```
 
+### Opting in from a server (egg)
+
+A server opts into a group named gpu by setting the environment variable
+`ENABLE_GPU=1` (via its egg). Any other value, or the variable being unset,
+means the group stays off. This variable can only ever turn a predefined
+group on or off — it is never interpreted as a path.
+
+Restarting the server (not reinstalling) is enough to apply a change, since
+Wings recreates the container on every start.
+
 ## Reporting Issues
 
 Feel free to report any wings specific issues or feature requests in [GitHub Issues](https://github.com/pelican-dev/wings/issues/new).
