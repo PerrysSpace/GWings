@@ -270,6 +270,11 @@ func (e *Environment) Create() error {
 		UsernsMode:  container.UsernsMode(cfg.Docker.UsernsMode),
 	}
 
+	// Grant the container access to any host devices this server has opted into and
+	// that the node administrator has allowed. This is a no-op unless devices are
+	// configured in the Wings configuration. See devices.go.
+	e.applyDevices(hostConf, evs)
+
 	var netConf *network.NetworkingConfig = nil //In case when no networking config is needed set nil
 	var serverNetConfig = config.Get().Docker.Network
 	if "macvlan" == serverNetConfig.Driver { //Generate networking config for macvlan driver
