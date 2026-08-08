@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pelican-dev/wings/config"
 	"github.com/pelican-dev/wings/environment"
 )
 
@@ -156,4 +157,20 @@ func readHwmon(dir string, stats *environment.GPUStats) {
 			}
 		}
 	}
+}
+
+// gpuStats returns the state of the host GPU this server has access to, or nil
+// if it has none or the card exposes no usable counters.
+//
+// Whether the server has a GPU is derived from the same allowlist the
+// passthrough itself uses, so a server that did not opt into a device group
+// never sees the node's card in its stats. resolveDevices walks a handful of map
+// entries and the server's environment, which is cheap enough to redo on every
+// stats tick and keeps this correct when the node's configuration changes.
+func (e *Environment) gpuStats() *environment.GPUStats {
+	if resolveDevices(config.Get().Docker.Devices, e.Configuration.EnvironmentVariables()).Empty() {
+		return nil
+	}
+
+	return readGPUStats(gpuSysfsRoot)
 }
