@@ -30,6 +30,16 @@ docker:
       groups: ["44", "104"]
 ```
 
+`paths` are host device paths mapped 1:1 into the container. `groups` are
+supplemental Linux groups the container process is added to — **use numeric
+GIDs, not names**. Docker resolves `GroupAdd` names against the *container
+image's* `/etc/group`, not the host's, so a name like `video` silently grants
+nothing if the image doesn't define that group. Find the host GIDs with:
+
+```bash
+getent group video render
+```
+
 ## Reporting Issues
 
 Feel free to report any wings specific issues or feature requests in [GitHub Issues](https://github.com/pelican-dev/wings/issues/new).
