@@ -68,4 +68,5 @@ func (ru *ResourceUsage) Reset() {
 	ru.Uptime = 0
 	ru.Network.TxBytes = 0
 	ru.Network.RxBytes = 0
+	ru.GPU = nil
 }

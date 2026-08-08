@@ -83,6 +83,7 @@ func (e *Environment) pollResources(ctx context.Context) error {
 				MemoryLimit: v.MemoryStats.Limit,
 				CpuAbsolute: calculateDockerAbsoluteCpu(v.PreCPUStats, v.CPUStats),
 				Network:     environment.NetworkStats{},
+				GPU:         e.gpuStats(),
 			}
 
 			for _, nw := range v.Networks {
